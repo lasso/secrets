@@ -8,6 +8,7 @@ module Secrets
   class SecretsHandler
     ALGO = "aes-256-cbc"
     IV_SIZE = 32
+    PATH = "secrets"
     SALT = UInt8.slice(11, 35, 29, 129, 44, 11, 233, 198, 192, 86, 12, 43)
 
     def initialize(password : String)
@@ -15,7 +16,45 @@ module Secrets
       @key = OpenSSL::PKCS5.pbkdf2_hmac(password, SALT)
     end
 
-    def encrypt(values : Hash(String, String)) : Nil
+    def get_all_secrets() : Array(Tuple(String, String))
+      load_existing_secrets.to_a
+    end
+
+    def get_keys() : Array(String)
+      load_existing_secrets.keys
+    end
+
+    def get_secret(key : String) : String | Nil
+      load_existing_secrets[key]?
+    end
+
+    def get_secrets(*keys : String) : Array(Tuple(String, String | Nil))
+      values = load_existing_secrets
+      keys.to_a.map { |key| Tuple(String, String | Nil).new(key, values[key]?) }
+    end
+
+    def remove_secrets(*keys : String) : Nil
+      values = load_existing_secrets.reject(keys)
+      encrypt(values)
+    end
+
+    def set_secret(key : String, value : String) : Nil
+      # Load existing secrets
+      values = load_existing_secrets
+      # Update secrets
+      values[key] = value
+      encrypt(values)
+    end
+
+    def set_secrets(*pairs : Tuple(String, String)) : Nil
+      # Load existing secrets
+      values = load_existing_secrets
+      # Update secrets
+      pairs.to_a.each { |pair| values[pair.first] = pair.last }
+      encrypt(values)
+    end
+
+    private def encrypt(values : Hash(String, String)) : Nil
       # Make hash a string using CSV
       data =
         CSV.build do |csv|
@@ -35,7 +74,7 @@ module Secrets
       io.write(cipher.final)
       io.rewind
 
-      File.open("secrets.txt", "w") do |f|
+      File.open(PATH, "w") do |f|
         # Write IV
         f.write(iv)
         # Write encrypted data
@@ -43,14 +82,14 @@ module Secrets
       end
     end
 
-    def decrypt() : Hash(String, String)
+    private def decrypt() : Hash(String, String)
       cipher = OpenSSL::Cipher.new(ALGO)
       cipher.decrypt
       cipher.key = @key
 
       io = IO::Memory.new
 
-      File.open("secrets.txt") do |f|
+      File.open(PATH) do |f|
         # Read all bytes from file
         bytes = f.getb_to_end
         # Use the first IV_SIZE bytes as the IV
@@ -70,10 +109,24 @@ module Secrets
       end
       values
     end
+
+    private def load_existing_secrets : Hash(String, String)
+      begin
+        decrypt
+      rescue exception
+        Hash(String, String).new
+      end
+    end
   end
 
   secrets_handler = SecretsHandler.new("secret")
-  values = {"Kalle" => "first", "Pelle" => "second"}
-  secrets_handler.encrypt values
-  puts secrets_handler.decrypt
+  secrets_handler.set_secret "Kalle", "first"
+  secrets_handler.set_secrets({"Pelle", "second"}, {"Lisa", "third"})
+  secrets_handler.set_secret "Sara", "fourth"
+  pp! secrets_handler.get_secret "Kalle"
+  pp! secrets_handler.get_secrets "Pelle", "Lisa", "Agneta"
+  secrets_handler.remove_secrets("Kalle")
+  pp! secrets_handler.get_secrets("Kalle", "Pelle")
+  pp! secrets_handler.get_keys
+  pp! secrets_handler.get_all_secrets
 end
