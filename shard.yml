@@ -1,0 +1,13 @@
+name: secrets
+version: 0.1.0
+
+authors:
+  - Lars Olsson <lasso@lassoweb.se>
+
+targets:
+  secrets:
+    main: src/secrets.cr
+
+crystal: 1.9.0
+
+license: MIT
