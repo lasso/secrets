@@ -16,14 +16,14 @@ def run_in_temp_dir(&)
   end
 end
 
-describe Secrets::SecretsHandler do
+describe Secrets::Handler do
 
   it "should be able to set and retrieve a single secret" do
     run_in_temp_dir do
       password = "top-secret"
       secret_key = "universal-secret"
       secret_value = 42.to_s
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secret(secret_key, secret_value)
       actual_secret_value = secrets_handler.get_secret(secret_key)
       actual_secret_value.should eq(secret_value)
@@ -36,7 +36,7 @@ describe Secrets::SecretsHandler do
       first_secret = {"first-secret", "first-value"}
       second_secret = {"second-secret", "second-value"}
       non_existing_key = "no-secret"
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
       actual_secret_values = secrets_handler.get_secrets(first_secret.first, second_secret.first, non_existing_key)
       actual_secret_values.should eq([first_secret, second_secret, {non_existing_key, nil}])
@@ -48,7 +48,7 @@ describe Secrets::SecretsHandler do
       password = "top-secret"
       secret_key = "universal-secret"
       secret_value = 42.to_s
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secret(secret_key, secret_value)
       secrets_handler.remove_secrets(secret_key)
       actual_secret_value = secrets_handler.get_secret(secret_key)
@@ -61,7 +61,7 @@ describe Secrets::SecretsHandler do
       password = "top-secret"
       first_secret = {"first-secret", "first-value"}
       second_secret = {"second-secret", "second-value"}
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
       secrets_handler.remove_secrets(first_secret.first, second_secret.first)
       actual_secret_values = secrets_handler.get_secrets(first_secret.first, second_secret.first)
@@ -74,7 +74,7 @@ describe Secrets::SecretsHandler do
       password = "top-secret"
       first_secret = {"first-secret", "first-value"}
       second_secret = {"second-secret", "second-value"}
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
       actual_keys = secrets_handler.get_keys
       actual_keys.should eq([first_secret.first, second_secret.first])
@@ -86,7 +86,7 @@ describe Secrets::SecretsHandler do
       password = "top-secret"
       first_secret = {"first-secret", "first-value"}
       second_secret = {"second-secret", "second-value"}
-      secrets_handler = Secrets::SecretsHandler.new(password)
+      secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
       actual_secrets = secrets_handler.get_all_secrets
       actual_secrets.should eq([first_secret, second_secret])
