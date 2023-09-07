@@ -118,15 +118,4 @@ module Secrets
       end
     end
   end
-
-  secrets_handler = SecretsHandler.new("secret")
-  secrets_handler.set_secret "Kalle", "first"
-  secrets_handler.set_secrets({"Pelle", "second"}, {"Lisa", "third"})
-  secrets_handler.set_secret "Sara", "fourth"
-  pp! secrets_handler.get_secret "Kalle"
-  pp! secrets_handler.get_secrets "Pelle", "Lisa", "Agneta"
-  secrets_handler.remove_secrets("Kalle")
-  pp! secrets_handler.get_secrets("Kalle", "Pelle")
-  pp! secrets_handler.get_keys
-  pp! secrets_handler.get_all_secrets
 end
