@@ -24,9 +24,9 @@ describe Secrets::Handler do
       secret_key = "universal-secret"
       secret_value = 42.to_s
       secrets_handler = Secrets::Handler.new(password)
-      secrets_handler.set_secret(secret_key, secret_value)
-      actual_secret_value = secrets_handler.get_secret(secret_key)
-      actual_secret_value.should eq(secret_value)
+      secrets_handler.set_secrets({secret_key, secret_value})
+      actual_secret_value = secrets_handler.get_secrets(secret_key)
+      actual_secret_value.should eq([{secret_key, secret_value}])
     end
   end
 
@@ -38,7 +38,7 @@ describe Secrets::Handler do
       non_existing_key = "no-secret"
       secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
-      actual_secret_values = secrets_handler.get_secrets(first_secret.first, second_secret.first, non_existing_key)
+      actual_secret_values = secrets_handler.get_secrets([first_secret.first, second_secret.first, non_existing_key])
       actual_secret_values.should eq([first_secret, second_secret, {non_existing_key, nil}])
     end
   end
@@ -49,10 +49,10 @@ describe Secrets::Handler do
       secret_key = "universal-secret"
       secret_value = 42.to_s
       secrets_handler = Secrets::Handler.new(password)
-      secrets_handler.set_secret(secret_key, secret_value)
+      secrets_handler.set_secrets({secret_key, secret_value})
       secrets_handler.remove_secrets(secret_key)
-      actual_secret_value = secrets_handler.get_secret(secret_key)
-      actual_secret_value.should eq(nil)
+      actual_secret_value = secrets_handler.get_secrets(secret_key)
+      actual_secret_value.should eq([{"universal-secret", nil}])
     end
   end
 
@@ -64,7 +64,7 @@ describe Secrets::Handler do
       secrets_handler = Secrets::Handler.new(password)
       secrets_handler.set_secrets(first_secret, second_secret)
       secrets_handler.remove_secrets(first_secret.first, second_secret.first)
-      actual_secret_values = secrets_handler.get_secrets(first_secret.first, second_secret.first)
+      actual_secret_values = secrets_handler.get_secrets([first_secret.first, second_secret.first])
       actual_secret_values.should eq([{first_secret.first, nil}, {second_secret.first, nil}])
     end
   end

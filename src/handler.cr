@@ -22,29 +22,29 @@ module Secrets
       load_existing_secrets.keys
     end
 
-    def get_secret(key : String) : String | Nil
-      load_existing_secrets[key]?
+    def get_secrets(*keys : String) : Array(Tuple(String, String | Nil))
+      get_secrets keys
     end
 
-    def get_secrets(*keys : String) : Array(Tuple(String, String | Nil))
+    def get_secrets(keys : Enumerable(String)) : Array(Tuple(String, String | Nil))
       values = load_existing_secrets
       keys.to_a.map { |key| Tuple(String, String | Nil).new(key, values[key]?) }
     end
 
     def remove_secrets(*keys : String) : Nil
+      remove_secrets keys
+    end
+
+    def remove_secrets(keys : Enumerable(String)) : Nil
       values = load_existing_secrets.reject(keys)
       encrypt(values)
     end
 
-    def set_secret(key : String, value : String) : Nil
-      # Load existing secrets
-      values = load_existing_secrets
-      # Update secrets
-      values[key] = value
-      encrypt(values)
+    def set_secrets(*pairs : Tuple(String, String)) : Nil
+      set_secrets pairs
     end
 
-    def set_secrets(*pairs : Tuple(String, String)) : Nil
+    def set_secrets(pairs : Enumerable(Tuple(String, String))) : Nil
       # Load existing secrets
       values = load_existing_secrets
       # Update secrets
