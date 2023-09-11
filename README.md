@@ -3,13 +3,22 @@
 A small demo application written in Crystal. This application will be used to introduce the
 Crystal language to internal developers at an upcomping event.
 
+The program uses a text file to store the secrets in an excrypted CSV file. By default, this file
+is named _secrets_, but this can be overridden with the `-o` flag.
+
 ## Installation
 
 No dependencies apart from the standard lib, so no shard installations neccessary.
 
 ## Usage
 
-`shards run` will execute the program. At the moment there are no choices involved. The program will simply create a text file named "secrets.txt" in the current folder, write encrypted data to it and read it back. 
+`shards run -- -p password get-all-secrets` - returns a list of all secrets \
+`shards run -- -p password get-keys` - returns a list of all keys \
+`shards run -- -p password get-secrets [key1] [key2] [keyN]` - returns secrets for the specified keys. \
+`shards run -- -p password remove-secrets [key1] [key2] [keyN]` - removes secrets for the specified keys. \
+`shards run -- -p password set-secrets [key1=val1] [key2=val2] [keyN=valN]` - sets secrets for the specified keys.
+
+`crystal spec` will run the test suite.
 
 ## Development
 

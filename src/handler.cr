@@ -6,12 +6,12 @@ module Secrets
   class Handler
     ALGO = "aes-256-cbc"
     IV_SIZE = 32
-    PATH = "secrets"
     SALT = UInt8.slice(11, 35, 29, 129, 44, 11, 233, 198, 192, 86, 12, 43)
 
-    def initialize(password : String)
+    def initialize(password : String, outfile : Path | Nil = nil)
       # Create a valid OpenSSL key from password using an HMAC hash (64 bytes)
       @key = OpenSSL::PKCS5.pbkdf2_hmac(password, SALT)
+      @outfile = outfile || Path[Dir.current, "secrets"] 
     end
 
     def get_all_secrets() : Array(Tuple(String, String))
@@ -52,14 +52,17 @@ module Secrets
       encrypt(values)
     end
 
+    private def build_csv(values : Hash(String, String)) : String
+      CSV.build do |csv|
+        values.each do |pair|
+          csv.row pair.first, pair.last
+        end
+      end
+    end
+
     private def encrypt(values : Hash(String, String)) : Nil
       # Make hash a string using CSV
-      data =
-        CSV.build do |csv|
-          values.each do |pair|
-            csv.row pair.first, pair.last
-          end
-        end
+      data = build_csv(values)
 
       cipher = OpenSSL::Cipher.new(ALGO)
       iv = Random::Secure.random_bytes(IV_SIZE)
@@ -72,7 +75,7 @@ module Secrets
       io.write(cipher.final)
       io.rewind
 
-      File.open(PATH, "w") do |f|
+      File.open(@outfile, "w") do |f|
         # Write IV
         f.write(iv)
         # Write encrypted data
@@ -87,7 +90,7 @@ module Secrets
 
       io = IO::Memory.new
 
-      File.open(PATH) do |f|
+      File.open(@outfile) do |f|
         # Read all bytes from file
         bytes = f.getb_to_end
         # Use the first IV_SIZE bytes as the IV
@@ -99,13 +102,7 @@ module Secrets
       io.write(cipher.final)
       io.rewind
 
-      values = Hash(String, String).new
-
-      # CSV parser can read directly from IO object
-      CSV.each_row(io) do |row|
-        values[row.first] = row.last
-      end
-      values
+      read_csv(io)
     end
 
     private def load_existing_secrets : Hash(String, String)
@@ -114,6 +111,16 @@ module Secrets
       rescue exception
         Hash(String, String).new
       end
+    end
+
+    private def read_csv(io : IO) : Hash(String, String)
+      values = Hash(String, String).new
+
+      # CSV parser can read directly from IO object
+      CSV.each_row(io) do |row|
+        values[row.first] = row.last
+      end
+      values
     end
   end
 end
