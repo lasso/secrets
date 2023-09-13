@@ -1,4 +1,5 @@
 require "csv"
+require "digest/sha512"
 require "openssl"
 require "random/secure"
 
@@ -6,11 +7,14 @@ module Secrets
   class Handler
     ALGO = "aes-256-cbc"
     IV_SIZE = 32
-    SALT = UInt8.slice(11, 35, 29, 129, 44, 11, 233, 198, 192, 86, 12, 43)
 
     def initialize(password : String, outfile : Path | Nil = nil)
+      # Create a array of bytes (from password) to use as HMAC salt (11 bytes)
+      salt_arr = Digest::SHA512.digest("secret").each.each_slice(3).map(&.last).first(11).to_a
+      # Copy bytes to a slice
+      salt = Slice.new(11) { |i| salt_arr[i] }
       # Create a valid OpenSSL key from password using an HMAC hash (64 bytes)
-      @key = OpenSSL::PKCS5.pbkdf2_hmac(password, SALT)
+      @key = OpenSSL::PKCS5.pbkdf2_hmac(password, salt)
       @outfile = outfile || Path[Dir.current, "secrets"] 
     end
 
