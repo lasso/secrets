@@ -10,7 +10,7 @@ module Secrets
 
     def initialize(password : String, outfile : Path | Nil = nil)
       # Create a array of bytes (from password) to use as HMAC salt (11 bytes)
-      salt_arr = Digest::SHA512.digest("secret").each.each_slice(3).map(&.last).first(11).to_a
+      salt_arr = Digest::SHA512.digest(password).each.each_slice(3).map(&.last).first(11).to_a
       # Copy bytes to a slice
       salt = Slice.new(11) { |i| salt_arr[i] }
       # Create a valid OpenSSL key from password using an HMAC hash (64 bytes)
@@ -110,11 +110,8 @@ module Secrets
     end
 
     private def load_existing_secrets : Hash(String, String)
-      begin
-        decrypt
-      rescue exception
-        Hash(String, String).new
-      end
+      return Hash(String, String).new unless File.exists?(@outfile)
+      decrypt
     end
 
     private def read_csv(io : IO) : Hash(String, String)
