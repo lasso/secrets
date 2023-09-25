@@ -5,7 +5,7 @@ require "random/secure"
 
 module Secrets
   class Handler
-    ALGO = "aes-256-cbc"
+    ALGO    = "aes-256-cbc"
     IV_SIZE = 32
 
     def initialize(password : String, outfile : Path | Nil = nil)
@@ -15,14 +15,14 @@ module Secrets
       salt = Slice.new(11) { |i| salt_arr[i] }
       # Create a valid OpenSSL key from password using an HMAC hash (64 bytes)
       @key = OpenSSL::PKCS5.pbkdf2_hmac(password, salt)
-      @outfile = outfile || Path[Dir.current, "secrets"] 
+      @outfile = outfile || Path[Dir.current, "secrets"]
     end
 
-    def get_all_secrets() : Array(Tuple(String, String))
+    def get_all_secrets : Array(Tuple(String, String))
       load_existing_secrets.to_a
     end
 
-    def get_keys() : Array(String)
+    def get_keys : Array(String)
       load_existing_secrets.keys
     end
 
@@ -87,7 +87,7 @@ module Secrets
       end
     end
 
-    private def decrypt() : Hash(String, String)
+    private def decrypt : Hash(String, String)
       cipher = OpenSSL::Cipher.new(ALGO)
       cipher.decrypt
       cipher.key = @key

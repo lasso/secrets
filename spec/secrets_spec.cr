@@ -17,7 +17,6 @@ def run_in_temp_dir(&)
 end
 
 describe Secrets::Handler do
-
   it "should be able to set and retrieve a single secret" do
     run_in_temp_dir do
       password = "top-secret"
@@ -92,5 +91,4 @@ describe Secrets::Handler do
       actual_secrets.should eq([first_secret, second_secret])
     end
   end
-
 end

@@ -87,9 +87,9 @@ module Secrets
     when "set-secrets"
       pairs =
         keys
-        .map { |key| key.split("=") }
-        .select { |values| values.size == 2 }
-        .map { |values| {values.first.strip(' '), values.last.strip(' ')} }
+          .map(&.split("="))
+          .select { |values| values.size == 2 }
+          .map { |values| {values.first.strip(' '), values.last.strip(' ')} }
       handler.set_secrets(pairs)
       pairs.each do |pair|
         puts "Set secret for \"#{pair.first}\"."
